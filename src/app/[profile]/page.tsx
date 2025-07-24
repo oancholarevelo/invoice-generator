@@ -7,8 +7,8 @@ import Link from 'next/link';
 import InvoiceTemplate, { InvoiceData, Item } from '@/components/InvoiceTemplate';
 import { profiles } from '@/lib/profiles';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { FileDown, User, ChevronsLeft, Plus, Trash2 } from 'lucide-react';
+import html2canvas from 'html2canvas-pro';
+import { FileDown, User, ChevronsLeft, Plus, Trash2, ChevronDown } from 'lucide-react';
 
 // Function to calculate and format the due date
 const getDueDate = () => {
@@ -22,10 +22,11 @@ export default function InvoicePage() {
   const profileKey = params.profile as string;
   const userProfile = profiles[profileKey];
 
-  // If profile doesn't exist, show a 404 page
   if (!userProfile) {
     notFound();
   }
+  
+  const [currency, setCurrency] = useState('PHP');
 
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
     company: userProfile,
@@ -53,6 +54,10 @@ export default function InvoicePage() {
     else if (name === 'clientAddress') setInvoiceData({ ...invoiceData, client: { ...invoiceData.client, address: value } });
     else setInvoiceData({ ...invoiceData, [name]: value });
   };
+  
+  const handleCurrencyChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setCurrency(e.target.value);
+  };
 
   const handleItemChange = (index: number, field: keyof Item, value: string) => {
     const newItems = [...invoiceData.items];
@@ -72,25 +77,36 @@ export default function InvoicePage() {
   const handleGeneratePdf = () => {
     const input = invoiceRef.current;
     if (input) {
-      // Temporarily set a fixed width to ensure consistency
-      input.style.width = '210mm';
-      html2canvas(input, { scale: 2 }).then((canvas) => {
-        // Restore original width
-        input.style.width = '';
+      const a4Width = '210mm';
+      const a4Height = '297mm';
+
+      const originalWidth = input.style.width;
+      const originalHeight = input.style.height;
+      input.style.width = a4Width;
+      input.style.height = a4Height;
+
+      html2canvas(input, { scale: 2, windowHeight: input.scrollHeight, windowWidth: input.scrollWidth }).then((canvas) => {
+        input.style.width = originalWidth;
+        input.style.height = originalHeight;
+
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
+        
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`invoice-${invoiceData.invoiceNumber}.pdf`);
+
+        const clientName = invoiceData.client.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'invoice';
+        pdf.save(`${clientName}-${invoiceData.invoiceNumber}.pdf`);
       });
     }
   };
 
   return (
-    <main className="p-4 sm:p-8 lg:p-12 bg-slate-50 dark:bg-slate-900 min-h-screen">
+    <main className="p-4 sm:p-8 lg:p-12 bg-transparent min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div className="bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl shadow-md backdrop-blur-lg p-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Create Invoice</h1>
             <div className="flex items-center gap-2 mt-2 text-slate-500 dark:text-slate-400">
@@ -98,17 +114,22 @@ export default function InvoicePage() {
               <span className="font-semibold">{userProfile.name}</span>
             </div>
           </div>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:underline">
-            <ChevronsLeft size={16} />
-            Switch User
-          </Link>
+          {/* UPDATED: Buttons are now grouped together */}
+          <div className="flex items-center gap-4">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm">
+              <ChevronsLeft size={16} />
+              Switch User
+            </Link>
+            <button onClick={handleGeneratePdf} className="py-2.5 px-6 inline-flex items-center gap-2 text-sm font-semibold rounded-lg border-transparent bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+              <FileDown size={16}/>
+              Download PDF
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-          {/* Form Section */}
-          <div className="lg:col-span-2 p-6 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl space-y-6">
-             {/* ... Form content remains the same ... */}
-             <div>
+          <div className="lg:col-span-2 p-6 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl space-y-6 backdrop-blur-lg shadow-md">
+            <div>
               <label htmlFor="clientName" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Name</label>
               <input type="text" id="clientName" name="clientName" value={invoiceData.client.name} onChange={handleDataChange} placeholder="e.g., Acme Corporation" className="w-full p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
             </div>
@@ -124,6 +145,18 @@ export default function InvoicePage() {
                <div>
                 <label htmlFor="dueDate" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Due Date</label>
                 <input type="date" id="dueDate" name="dueDate" value={invoiceData.dueDate} onChange={handleDataChange} className="w-full p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="currency" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Currency</label>
+              {/* UPDATED: Wrapped select in a relative div and added a custom chevron icon for balanced padding */}
+              <div className="relative">
+                <select id="currency" name="currency" value={currency} onChange={handleCurrencyChange} className="w-full px-3 py-2 appearance-none bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                  <option value="PHP">PHP (₱)</option>
+                  <option value="USD">USD ($)</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
@@ -143,20 +176,14 @@ export default function InvoicePage() {
             </div>
           </div>
 
-          {/* Preview Section */}
           <div className="lg:col-span-3">
             <div className="lg:sticky top-12">
-                <div className="w-full max-w-[210mm] mx-auto bg-white rounded-lg shadow-2xl overflow-hidden">
-                    <div className="aspect-[1/1.414] overflow-y-auto">
-                        <InvoiceTemplate data={invoiceData} ref={invoiceRef} />
+                <div className="w-full max-w-[210mm] mx-auto bg-white rounded-lg shadow-2xl overflow-hidden aspect-[1/1.414]">
+                    <div className="overflow-y-auto h-full">
+                        <InvoiceTemplate data={invoiceData} currency={currency} ref={invoiceRef} />
                     </div>
                 </div>
-                <div className="mt-6 flex justify-end max-w-[210mm] mx-auto">
-                  <button onClick={handleGeneratePdf} className="py-2.5 px-6 inline-flex items-center gap-2 text-sm font-semibold rounded-lg border-transparent bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                      <FileDown size={16}/>
-                      Download PDF
-                  </button>
-                </div>
+                {/* MOVED the download button to the header */}
             </div>
           </div>
         </div>

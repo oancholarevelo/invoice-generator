@@ -20,13 +20,18 @@
 }
 
 body {
-  background-color: #f8fafc; /* slate-50 */
+  /* A subtle, modern gradient background */
+  background-color: #f1f5f9; /* slate-100 */
+  background-image: radial-gradient(circle at top left, #e0e7ff, transparent 40%),
+                    radial-gradient(circle at bottom right, #e0f2fe, transparent 50%);
   color: #1e293b; /* slate-800 */
 }
 
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #0f172a; /* slate-900 */
+    background-color: #020617; /* slate-950 */
+    background-image: radial-gradient(circle at top left, rgba(30, 41, 59, 0.5), transparent 40%),
+                      radial-gradient(circle at bottom right, rgba(14, 116, 144, 0.2), transparent 50%);
     color: #e2e8f0; /* slate-200 */
   }
 }

@@ -21,9 +21,24 @@ export interface InvoiceData {
 }
 interface InvoiceTemplateProps {
   data: InvoiceData;
+  currency: string; // Add currency prop
 }
 
-const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ data }, ref) => {
+// Function to get currency symbol
+const getCurrencySymbol = (currency: string) => {
+  switch (currency) {
+    case 'PHP':
+      return '₱';
+    case 'USD':
+      return '$';
+    default:
+      return '$';
+  }
+};
+
+const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceTemplateProps>(({ data, currency }, ref) => {
+  const currencySymbol = getCurrencySymbol(currency);
+
   return (
     // MODIFIED: Added min-h-full and flex properties to create the footer layout
     <div ref={ref} className="flex flex-col p-4 sm:p-10 bg-white dark:bg-neutral-800 w-full min-h-full">
@@ -72,8 +87,8 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceTemplateProps>((
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2" key={index}>
                 <div className="col-span-full sm:col-span-2"><p className="font-medium text-gray-800 dark:text-neutral-200">{item.description}</p></div>
                 <div><p className="text-gray-800 dark:text-neutral-200">{item.quantity}</p></div>
-                <div><p className="text-gray-800 dark:text-neutral-200">${item.rate.toFixed(2)}</p></div>
-                <div><p className="sm:text-end text-gray-800 dark:text-neutral-200">${(item.quantity * item.rate).toFixed(2)}</p></div>
+                <div><p className="text-gray-800 dark:text-neutral-200">{currencySymbol}{item.rate.toFixed(2)}</p></div>
+                <div><p className="sm:text-end text-gray-800 dark:text-neutral-200">{currencySymbol}{(item.quantity * item.rate).toFixed(2)}</p></div>
               </div>
             ))}
           </div>
@@ -83,11 +98,11 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceTemplateProps>((
           <div className="w-full max-w-2xl sm:text-end space-y-2">
             <dl className="grid sm:grid-cols-5 gap-x-3">
               <dt className="col-span-3 font-semibold text-gray-800 dark:text-neutral-200">Subtotal:</dt>
-              <dd className="col-span-2 text-gray-500 dark:text-neutral-500">${data.subtotal.toFixed(2)}</dd>
+              <dd className="col-span-2 text-gray-500 dark:text-neutral-500">{currencySymbol}{data.subtotal.toFixed(2)}</dd>
             </dl>
             <dl className="grid sm:grid-cols-5 gap-x-3">
               <dt className="col-span-3 font-bold text-lg text-gray-800 dark:text-neutral-200">Total:</dt>
-              <dd className="col-span-2 font-bold text-lg text-gray-800 dark:text-neutral-200">${data.total.toFixed(2)}</dd>
+              <dd className="col-span-2 font-bold text-lg text-gray-800 dark:text-neutral-200">{currencySymbol}{data.total.toFixed(2)}</dd>
             </dl>
           </div>
         </div>
