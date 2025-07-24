@@ -117,6 +117,7 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceTemplateProps>((
         <div className="mt-2">
           <p className="block text-sm font-medium text-gray-800 dark:text-neutral-200">{data.company.email}</p>
           <p className="block text-sm font-medium text-gray-800 dark:text-neutral-200">{data.company.phone}</p>
+          <a href={`https://${data.company.portfolio}`} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">{data.company.portfolio}</a>
         </div>
         <p className="mt-5 text-sm text-gray-500 dark:text-neutral-500">© {new Date().getFullYear()} {data.company.name}.</p>
       </div>

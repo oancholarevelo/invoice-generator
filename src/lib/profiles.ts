@@ -6,6 +6,7 @@ export interface Profile {
   address: string;
   email: string;
   phone: string;
+  portfolio: string;
 }
 
 export const profiles: Record<string, Profile> = {
@@ -15,6 +16,7 @@ export const profiles: Record<string, Profile> = {
     address: 'Rizal, Philippines',
     email: 'oancholarevelo@gmail.com',
     phone: '+63 947 533 7630',
+    portfolio: 'https://oliverrevelo.vercel.app',
   },
   lanceflores: { // Key matches the URL slug
     name: 'Lance Flores',
@@ -22,5 +24,6 @@ export const profiles: Record<string, Profile> = {
     address: 'Quezon City, Philippines',
     email: 'hello.lanceflores@gmail.com',
     phone: '+63 916 287 0007',
+    portfolio: 'https://lanceflores.netlify.app',
   },
 };
