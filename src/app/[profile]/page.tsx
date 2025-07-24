@@ -84,6 +84,7 @@ export default function InvoicePage() {
   const handleGeneratePdf = () => {
     const input = invoiceRef.current;
     if (input) {
+      // Reverted to using 'mm' to preserve the layout
       const a4Width = '210mm';
       const a4Height = '297mm';
 
@@ -92,17 +93,27 @@ export default function InvoicePage() {
       input.style.width = a4Width;
       input.style.height = a4Height;
 
-      html2canvas(input, { scale: 2, windowHeight: input.scrollHeight, windowWidth: input.scrollWidth }).then((canvas) => {
+      html2canvas(input, {
+        scale: 2, // Using a higher scale for better image quality
+        windowHeight: input.scrollHeight,
+        windowWidth: input.scrollWidth,
+        onclone: (clonedDoc) => {
+          // This ensures the PDF is always in light mode
+          clonedDoc.documentElement.classList.remove('dark');
+        }
+      }).then((canvas) => {
+        // Restore original size after capture
         input.style.width = originalWidth;
         input.style.height = originalHeight;
 
-        const imgData = canvas.toDataURL('image/png');
+        // Use JPEG format with quality setting for smaller file size
+        const imgData = canvas.toDataURL('image/jpeg', 0.9);
         const pdf = new jsPDF('p', 'mm', 'a4');
         
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
         const clientName = invoiceData.client.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'invoice';
         pdf.save(`${clientName}-${invoiceData.invoiceNumber}.pdf`);
