@@ -61,10 +61,17 @@ export default function InvoicePage() {
 
   const handleItemChange = (index: number, field: keyof Item, value: string) => {
     const newItems = [...invoiceData.items];
-    const numValue = field === 'description' ? value : parseFloat(value) || 0;
-    (newItems[index] as any)[field] = numValue;
+    const itemToUpdate = { ...newItems[index] };
+
+    if (field === 'description') {
+        itemToUpdate[field] = value;
+    } else if (field === 'quantity' || field === 'rate') {
+        itemToUpdate[field] = parseFloat(value) || 0;
+    }
+
+    newItems[index] = itemToUpdate;
     setInvoiceData({ ...invoiceData, items: newItems });
-  };
+};
 
   const addItem = () => {
     setInvoiceData({ ...invoiceData, items: [...invoiceData.items, { description: '', quantity: 1, rate: 0 }] });
