@@ -36,6 +36,8 @@ export default function InvoicePage() {
     dueDate: getDueDate(),
     items: [{ description: 'Website Development', quantity: 1, rate: 1000 }],
     notes: 'If you have any questions concerning this invoice, use the following contact information:',
+    paymentDetails: userProfile.paymentDetails,
+    isPaid: false,
     subtotal: 0,
     total: 0,
   });
@@ -49,10 +51,16 @@ export default function InvoicePage() {
   }, [invoiceData.items]);
 
   const handleDataChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    if (name === 'clientName') setInvoiceData({ ...invoiceData, client: { ...invoiceData.client, name: value } });
-    else if (name === 'clientAddress') setInvoiceData({ ...invoiceData, client: { ...invoiceData.client, address: value } });
-    else setInvoiceData({ ...invoiceData, [name]: value });
+    const { name, value, type } = e.target;
+    const finalValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+
+    if (name === 'clientName') {
+      setInvoiceData(prev => ({ ...prev, client: { ...prev.client, name: value } }));
+    } else if (name === 'clientAddress') {
+      setInvoiceData(prev => ({ ...prev, client: { ...prev.client, address: value } }));
+    } else {
+      setInvoiceData(prev => ({ ...prev, [name]: finalValue }));
+    }
   };
   
   const handleCurrencyChange = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -149,20 +157,20 @@ export default function InvoicePage() {
           <div className="lg:col-span-2 p-6 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl space-y-6 backdrop-blur-lg shadow-md">
             <div>
               <label htmlFor="clientName" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Name</label>
-              <input type="text" id="clientName" name="clientName" value={invoiceData.client.name} onChange={handleDataChange} placeholder="e.g., Acme Corporation" className="w-full p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+              <input type="text" id="clientName" name="clientName" value={invoiceData.client.name} onChange={handleDataChange} placeholder="e.g., Acme Corporation" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
             </div>
             <div>
               <label htmlFor="clientAddress" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Address</label>
-              <textarea id="clientAddress" name="clientAddress" value={invoiceData.client.address} onChange={handleDataChange} placeholder="Client's full address" className="w-full p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
+              <textarea id="clientAddress" name="clientAddress" value={invoiceData.client.address} onChange={handleDataChange} placeholder="Client's full address" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="invoiceNumber" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Invoice #</label>
-                <input type="text" id="invoiceNumber" name="invoiceNumber" value={invoiceData.invoiceNumber} onChange={handleDataChange} className="w-full p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                <input type="text" id="invoiceNumber" name="invoiceNumber" value={invoiceData.invoiceNumber} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
               </div>
                <div>
                 <label htmlFor="dueDate" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Due Date</label>
-                <input type="date" id="dueDate" name="dueDate" value={invoiceData.dueDate} onChange={handleDataChange} className="w-full p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                <input type="date" id="dueDate" name="dueDate" value={invoiceData.dueDate} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
               </div>
             </div>
             
@@ -183,14 +191,33 @@ export default function InvoicePage() {
                <div className="space-y-4">
                   {invoiceData.items.map((item, index) => (
                     <div key={index} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
-                      <input type="text" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} placeholder="Description" className="sm:col-span-5 p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
-                      <input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} placeholder="Qty" className="sm:col-span-2 p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
-                      <input type="number" value={item.rate} onChange={(e) => handleItemChange(index, 'rate', e.target.value)} placeholder="Rate" className="sm:col-span-3 p-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <input type="text" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} placeholder="Description" className="sm:col-span-5 px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} placeholder="Qty" className="sm:col-span-2 px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <input type="number" value={item.rate} onChange={(e) => handleItemChange(index, 'rate', e.target.value)} placeholder="Rate" className="sm:col-span-3 px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
                       <button onClick={() => removeItem(index)} className="sm:col-span-2 text-red-500 hover:text-red-700 flex justify-center items-center h-full"><Trash2 size={18}/></button>
                     </div>
                   ))}
                   <button onClick={addItem} className="w-full py-2 border-dashed border-2 border-slate-300 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 font-semibold flex items-center justify-center gap-2"><Plus size={16}/> Add Item</button>
                </div>
+            </div>
+
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6 space-y-6">
+              <div>
+                <label htmlFor="notes" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Notes</label>
+                <textarea id="notes" name="notes" value={invoiceData.notes} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
+              </div>
+              <div>
+                <label htmlFor="paymentDetails" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Payment Options</label>
+                <textarea id="paymentDetails" name="paymentDetails" value={invoiceData.paymentDetails} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={4}></textarea>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-6">
+              <label htmlFor="isPaid" className="text-sm font-medium text-slate-700 dark:text-slate-300">Mark as Paid</label>
+              <div className="relative inline-block w-10 align-middle select-none">
+                  <input type="checkbox" name="isPaid" id="isPaid" checked={invoiceData.isPaid} onChange={handleDataChange} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white dark:bg-slate-900 border-4 border-slate-300 dark:border-slate-600 appearance-none cursor-pointer transition-all duration-200 ease-in-out"/>
+                  <label htmlFor="isPaid" className="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer"></label>
+              </div>
             </div>
           </div>
 

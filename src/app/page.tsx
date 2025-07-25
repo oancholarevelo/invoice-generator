@@ -5,7 +5,7 @@ import { ArrowRight, FileText } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-start pt-32 p-8 bg-transparent">
+    <main className="flex min-h-screen w-full flex-col items-center justify-center p-8 bg-transparent">
       <div className="text-center">
         <div className="flex justify-center mb-6">
           <div className="p-4 bg-indigo-100 dark:bg-indigo-900/50 rounded-full">

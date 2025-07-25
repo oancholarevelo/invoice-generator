@@ -18,6 +18,8 @@ export interface InvoiceData {
   subtotal: number;
   total: number;
   notes: string;
+  paymentDetails: string;
+  isPaid: boolean;
 }
 interface InvoiceTemplateProps {
   data: InvoiceData;
@@ -39,7 +41,17 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceTemplateProps>((
   const currencySymbol = getCurrencySymbol(currency);
 
   return (
-    <div ref={ref} className="flex flex-col p-4 sm:p-10 bg-white w-full min-h-full">
+    <div ref={ref} className="relative flex flex-col p-4 sm:p-10 bg-white w-full min-h-full">
+      {data.isPaid && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span
+            className="border-4 border-green-500 text-green-500 rounded-lg text-center font-black uppercase tracking-widest text-6xl sm:text-7xl md:text-8xl p-4 md:p-8 opacity-15"
+            style={{ transform: 'rotate(-20deg)' }}
+          >
+            Paid
+          </span>
+        </div>
+      )}
       
       <div className="flex-grow">
         <div className="flex justify-between">
@@ -107,13 +119,27 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceTemplateProps>((
       
       <div className="mt-8 sm:mt-12 pt-8 border-t border-gray-200">
         <h4 className="text-lg font-semibold text-gray-800">Thank you!</h4>
-        <p className="text-gray-500">{data.notes}</p>
-        <div className="mt-2">
-          <p className="block text-sm font-medium text-gray-800">{data.company.email}</p>
-          <p className="block text-sm font-medium text-gray-800">{data.company.phone}</p>
-          <a href={`https://${data.company.portfolio}`} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-indigo-600 hover:text-indigo-500">{data.company.portfolio}</a>
+        <p className="text-gray-500 mb-6">{data.notes}</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          {data.paymentDetails && (
+            <div>
+              <h5 className="text-base font-semibold text-gray-800">Payment Options</h5>
+              <div className="mt-2 text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: data.paymentDetails.replace(/\n/g, '<br />') }} />
+            </div>
+          )}
+
+          <div>
+            <h5 className="text-base font-semibold text-gray-800">Contact Information</h5>
+            <div className="mt-2 space-y-1 text-sm text-gray-500">
+              <p>{data.company.email}</p>
+              <p>{data.company.phone}</p>
+              <a href={`https://${data.company.portfolio}`} target="_blank" rel="noopener noreferrer" className="block text-indigo-600 hover:text-indigo-500">{data.company.portfolio}</a>
+            </div>
+          </div>
         </div>
-        <p className="mt-5 text-sm text-gray-500">© {new Date().getFullYear()} {data.company.name}.</p>
+        
+        <p className="mt-8 text-sm text-gray-500">© {new Date().getFullYear()} {data.company.name}.</p>
       </div>
     </div>
   );

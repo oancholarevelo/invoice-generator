@@ -35,3 +35,12 @@ body {
     color: #e2e8f0; /* slate-200 */
   }
 }
+
+/* Custom styles for the toggle switch */
+.toggle-checkbox:checked {
+  right: 0;
+  border-color: #4f46e5; /* equivalent to border-indigo-600 */
+}
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #4f46e5; /* equivalent to bg-indigo-600 */
+}
