@@ -32,8 +32,6 @@ export default function InvoicePage() {
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    let logoUrlToRevoke: string | null = null;
-
     getProfile(profileKey).then(profile => {
       if (profile) {
         setUserProfile(profile);
@@ -53,19 +51,13 @@ export default function InvoicePage() {
       }
       setLoading(false);
     });
-
-    return () => {
-      if (logoUrlToRevoke) {
-        URL.revokeObjectURL(logoUrlToRevoke);
-      }
-    };
   }, [profileKey]);
 
   useEffect(() => {
-    if (invoiceData) {
+    if (invoiceData?.items) {
       const subtotal = invoiceData.items.reduce((acc, item) => acc + item.quantity * item.rate, 0);
       const total = subtotal;
-      setInvoiceData(prev => prev ? ({ ...prev, subtotal, total }) : null);
+      setInvoiceData(prev => prev ? { ...prev, subtotal, total } : null);
     }
   }, [invoiceData?.items]);
 
