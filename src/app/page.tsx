@@ -1,9 +1,18 @@
 // src/app/page.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { profiles } from '@/lib/profiles';
-import { ArrowRight, FileText } from 'lucide-react';
+import { getProfiles, Profile } from '@/lib/profiles';
+import { ArrowRight, FileText, PlusCircle } from 'lucide-react';
 
 export default function HomePage() {
+  const [profiles, setProfiles] = useState<Record<string, Profile> | null>(null);
+
+  useEffect(() => {
+    getProfiles().then(setProfiles);
+  }, []);
+
   return (
     <main className="flex flex-col items-center justify-center p-8 bg-transparent">
       <div className="text-center">
@@ -20,24 +29,39 @@ export default function HomePage() {
         </p>
       </div>
       <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 w-full max-w-4xl">
-        {(Object.keys(profiles)).map((key) => (
-          <Link
-            key={key}
-            href={`/${key}`}
-            className="group rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 p-8 text-left shadow-lg backdrop-blur-lg transition-all hover:ring-2 hover:ring-indigo-500 hover:scale-105"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{profiles[key].name}</h2>
-                <p className="mt-2 text-slate-500 dark:text-slate-400">{profiles[key].email}</p>
+        {profiles ? (
+          Object.keys(profiles).map((key) => (
+            <Link
+              key={key}
+              href={`/${key}`}
+              className="group rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 p-8 text-left shadow-lg backdrop-blur-lg transition-all hover:ring-2 hover:ring-indigo-500 hover:scale-105"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{profiles[key].name}</h2>
+                  <p className="mt-2 text-slate-500 dark:text-slate-400">{profiles[key].email}</p>
+                </div>
+                <ArrowRight
+                  className="text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-indigo-600"
+                  size={24}
+                />
               </div>
-              <ArrowRight
-                className="text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-indigo-600"
-                size={24}
-              />
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))
+        ) : (
+          <>
+            <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-700/50 p-8 h-36 animate-pulse"></div>
+            <div className="rounded-2xl bg-slate-200/50 dark:bg-slate-700/50 p-8 h-36 animate-pulse"></div>
+          </>
+        )}
+         <Link
+            href={`/custom`}
+            className="group rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-transparent p-8 text-center shadow-lg transition-all hover:border-indigo-500 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 flex flex-col justify-center items-center col-span-1 sm:col-span-2"
+        >
+            <PlusCircle className="h-12 w-12 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+            <h2 className="mt-4 text-2xl font-semibold text-slate-900 dark:text-slate-100">Create Your Own</h2>
+            <p className="mt-2 text-slate-500 dark:text-slate-400">Enter your details manually</p>
+        </Link>
       </div>
     </main>
   );

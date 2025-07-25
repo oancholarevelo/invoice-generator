@@ -18,3 +18,12 @@ body {
   /* font-family rule removed from here to allow layout.js to take control */
   background-image: radial-gradient(circle at top left, #e0e7ff, transparent 40%), radial-gradient(circle at bottom right, #e0f2fe, transparent 50%);
 }
+
+/* Custom styles for the toggle switch */
+.toggle-checkbox:checked {
+  right: 0;
+  border-color: #4f46e5; /* equivalent to border-indigo-600 */
+}
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #4f46e5; /* equivalent to bg-indigo-600 */
+}

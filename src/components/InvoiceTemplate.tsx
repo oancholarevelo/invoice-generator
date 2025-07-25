@@ -56,7 +56,9 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceTemplateProps>((
       <div className="flex-grow">
         <div className="flex justify-between">
           <div>
-            <Image src={data.company.logoUrl} alt={`${data.company.name} Logo`} width={200} height={200} className="h-16 w-auto" priority />
+            {data.company.logoUrl && (
+              <Image src={data.company.logoUrl} alt={`${data.company.name} Logo`} width={200} height={200} className="h-16 w-auto" priority />
+            )}
           </div>
           <div className="text-end">
             <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">Invoice</h2>

@@ -5,10 +5,10 @@ import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
 import InvoiceTemplate, { InvoiceData, Item } from '@/components/InvoiceTemplate';
-import { profiles } from '@/lib/profiles';
+import { getProfile, Profile } from '@/lib/profiles';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
-import { FileDown, User, ChevronsLeft, Plus, Trash2, ChevronDown } from 'lucide-react';
+import { FileDown, User, ChevronsLeft, Plus, Trash2, ChevronDown, Building, UploadCloud, FileImage } from 'lucide-react';
 
 // Function to calculate and format the due date
 const getDueDate = () => {
@@ -20,47 +20,113 @@ const getDueDate = () => {
 export default function InvoicePage() {
   const params = useParams();
   const profileKey = params.profile as string;
-  const userProfile = profiles[profileKey];
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [logoFilename, setLogoFilename] = useState<string>('');
 
-  if (!userProfile) {
-    notFound();
-  }
-  
   const [currency, setCurrency] = useState('PHP');
 
-  const [invoiceData, setInvoiceData] = useState<InvoiceData>({
-    company: userProfile,
-    client: { name: '', address: '' },
-    invoiceNumber: `${new Date().getFullYear()}-001`,
-    invoiceDate: new Date().toISOString().split('T')[0],
-    dueDate: getDueDate(),
-    items: [{ description: 'Website Development', quantity: 1, rate: 1000 }],
-    notes: 'If you have any questions concerning this invoice, use the following contact information:',
-    paymentDetails: userProfile.paymentDetails,
-    isPaid: false,
-    subtotal: 0,
-    total: 0,
-  });
+  const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
 
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const subtotal = invoiceData.items.reduce((acc, item) => acc + item.quantity * item.rate, 0);
-    const total = subtotal;
-    setInvoiceData(prev => ({ ...prev, subtotal, total }));
-  }, [invoiceData.items]);
+    let logoUrlToRevoke: string | null = null;
+
+    getProfile(profileKey).then(profile => {
+      if (profile) {
+        setUserProfile(profile);
+        setInvoiceData({
+          company: profile,
+          client: { name: '', address: '' },
+          invoiceNumber: `${new Date().getFullYear()}-001`,
+          invoiceDate: new Date().toISOString().split('T')[0],
+          dueDate: getDueDate(),
+          items: [{ description: 'Website Development', quantity: 1, rate: 1000 }],
+          notes: 'If you have any questions concerning this invoice, use the following contact information:',
+          paymentDetails: profile.paymentDetails,
+          isPaid: false,
+          subtotal: 1000,
+          total: 1000,
+        });
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      if (logoUrlToRevoke) {
+        URL.revokeObjectURL(logoUrlToRevoke);
+      }
+    };
+  }, [profileKey]);
+
+  useEffect(() => {
+    if (invoiceData) {
+      const subtotal = invoiceData.items.reduce((acc, item) => acc + item.quantity * item.rate, 0);
+      const total = subtotal;
+      setInvoiceData(prev => prev ? ({ ...prev, subtotal, total }) : null);
+    }
+  }, [invoiceData?.items]);
+
+  if (loading) {
+    return <main className="p-4 sm:p-8 lg:p-12"><div className="max-w-7xl mx-auto text-center">Loading Profile...</div></main>;
+  }
+
+  if (!userProfile || !invoiceData) {
+    notFound();
+  }
+
+  const handleCompanyDataChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setInvoiceData(prev => {
+        if (!prev) return null;
+        return {
+            ...prev,
+            company: {
+                ...prev.company,
+                [name]: value,
+            }
+        };
+    });
+  };
+  
+  const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const logoUrl = URL.createObjectURL(file);
+      setLogoFilename(file.name);
+      setInvoiceData(prev => {
+        if (!prev) return null;
+        // Revoke the old URL if it exists to avoid memory leaks
+        if (prev.company.logoUrl && prev.company.logoUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(prev.company.logoUrl);
+        }
+        return {
+          ...prev,
+          company: {
+            ...prev.company,
+            logoUrl,
+          }
+        };
+      });
+    }
+  };
 
   const handleDataChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const finalValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
 
-    if (name === 'clientName') {
-      setInvoiceData(prev => ({ ...prev, client: { ...prev.client, name: value } }));
-    } else if (name === 'clientAddress') {
-      setInvoiceData(prev => ({ ...prev, client: { ...prev.client, address: value } }));
-    } else {
-      setInvoiceData(prev => ({ ...prev, [name]: finalValue }));
-    }
+    setInvoiceData(prev => {
+      if (!prev) return null;
+      if (name === 'clientName') {
+        return { ...prev, client: { ...prev.client, name: value } };
+      } else if (name === 'clientAddress') {
+        return { ...prev, client: { ...prev.client, address: value } };
+      } else {
+        return { ...prev, [name]: finalValue };
+      }
+    });
   };
   
   const handleCurrencyChange = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -68,31 +134,33 @@ export default function InvoicePage() {
   };
 
   const handleItemChange = (index: number, field: keyof Item, value: string) => {
-    const newItems = [...invoiceData.items];
-    const itemToUpdate = { ...newItems[index] };
+    setInvoiceData(prev => {
+      if (!prev) return null;
+      const newItems = [...prev.items];
+      const itemToUpdate = { ...newItems[index] };
 
-    if (field === 'description') {
-        itemToUpdate[field] = value;
-    } else if (field === 'quantity' || field === 'rate') {
-        itemToUpdate[field] = parseFloat(value) || 0;
-    }
+      if (field === 'description') {
+          itemToUpdate[field] = value;
+      } else if (field === 'quantity' || field === 'rate') {
+          itemToUpdate[field] = parseFloat(value) || 0;
+      }
 
-    newItems[index] = itemToUpdate;
-    setInvoiceData({ ...invoiceData, items: newItems });
-};
+      newItems[index] = itemToUpdate;
+      return { ...prev, items: newItems };
+    });
+  };
 
   const addItem = () => {
-    setInvoiceData({ ...invoiceData, items: [...invoiceData.items, { description: '', quantity: 1, rate: 0 }] });
+    setInvoiceData(prev => prev ? { ...prev, items: [...prev.items, { description: '', quantity: 1, rate: 0 }] } : null);
   };
 
   const removeItem = (index: number) => {
-    setInvoiceData({ ...invoiceData, items: invoiceData.items.filter((_, i) => i !== index) });
+    setInvoiceData(prev => prev ? { ...prev, items: prev.items.filter((_, i) => i !== index) } : null);
   };
 
   const handleGeneratePdf = () => {
     const input = invoiceRef.current;
     if (input) {
-      // Reverted to using 'mm' to preserve the layout
       const a4Width = '210mm';
       const a4Height = '297mm';
 
@@ -102,19 +170,16 @@ export default function InvoicePage() {
       input.style.height = a4Height;
 
       html2canvas(input, {
-        scale: 2, // Using a higher scale for better image quality
+        scale: 2,
         windowHeight: input.scrollHeight,
         windowWidth: input.scrollWidth,
         onclone: (clonedDoc) => {
-          // This ensures the PDF is always in light mode
           clonedDoc.documentElement.classList.remove('dark');
         }
       }).then((canvas) => {
-        // Restore original size after capture
         input.style.width = originalWidth;
         input.style.height = originalHeight;
 
-        // Use JPEG format with quality setting for smaller file size
         const imgData = canvas.toDataURL('image/jpeg', 0.9);
         const pdf = new jsPDF('p', 'mm', 'a4');
         
@@ -137,10 +202,9 @@ export default function InvoicePage() {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Create Invoice</h1>
             <div className="flex items-center gap-2 mt-2 text-slate-500 dark:text-slate-400">
               <User size={16} />
-              <span className="font-semibold">{userProfile.name}</span>
+              <span className="font-semibold">{profileKey === 'custom' ? (invoiceData.company.name || 'Custom User') : userProfile.name}</span>
             </div>
           </div>
-          {/* UPDATED: Buttons are now grouped together */}
           <div className="flex items-center gap-4">
             <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm">
               <ChevronsLeft size={16} />
@@ -155,34 +219,79 @@ export default function InvoicePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
           <div className="lg:col-span-2 p-6 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl space-y-6 backdrop-blur-lg shadow-md">
-            <div>
-              <label htmlFor="clientName" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Name</label>
-              <input type="text" id="clientName" name="clientName" value={invoiceData.client.name} onChange={handleDataChange} placeholder="e.g., Acme Corporation" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
-            </div>
-            <div>
-              <label htmlFor="clientAddress" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Address</label>
-              <textarea id="clientAddress" name="clientAddress" value={invoiceData.client.address} onChange={handleDataChange} placeholder="Client's full address" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="invoiceNumber" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Invoice #</label>
-                <input type="text" id="invoiceNumber" name="invoiceNumber" value={invoiceData.invoiceNumber} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            
+            {profileKey === 'custom' && (
+              <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 flex items-center"><Building size={20} className="mr-2"/> Your Details</h3>
+                  <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Your Name / Company</label>
+                      <input type="text" id="name" name="name" value={invoiceData.company.name} onChange={handleCompanyDataChange} placeholder="e.g., John Doe" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                  </div>
+                  <div>
+                      <label htmlFor="logoUrl" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Logo</label>
+                      <button onClick={() => logoInputRef.current?.click()} className="w-full border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50/80 transition-all duration-300 group flex items-center justify-center gap-2">
+                          <UploadCloud className="text-slate-400 group-hover:text-indigo-600" size={20}/>
+                          <span className="text-slate-600 font-semibold">{logoFilename ? 'Change Logo' : 'Upload Logo'}</span>
+                      </button>
+                      <input type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} ref={logoInputRef} className="hidden" />
+                      {logoFilename && (
+                        <div className="flex items-center justify-center mt-2 text-sm text-slate-500">
+                          <FileImage size={16} className="mr-2" />
+                          <span>{logoFilename}</span>
+                        </div>
+                      )}
+                  </div>
+                   <div>
+                      <label htmlFor="address" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Your Address</label>
+                      <textarea id="address" name="address" value={invoiceData.company.address} onChange={handleCompanyDataChange} placeholder="123 Example St..." className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={2}></textarea>
+                  </div>
+                  <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Your Email</label>
+                      <input type="email" id="email" name="email" value={invoiceData.company.email} onChange={handleCompanyDataChange} placeholder="you@example.com" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                  </div>
+                   <div>
+                      <label htmlFor="phone" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Your Phone</label>
+                      <input type="tel" id="phone" name="phone" value={invoiceData.company.phone} onChange={handleCompanyDataChange} placeholder="+1 (555) 123-4567" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                  </div>
+                   <div>
+                      <label htmlFor="portfolio" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Website / Portfolio</label>
+                      <input type="text" id="portfolio" name="portfolio" value={invoiceData.company.portfolio} onChange={handleCompanyDataChange} placeholder="yourwebsite.com" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                  </div>
               </div>
-               <div>
-                <label htmlFor="dueDate" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Due Date</label>
-                <input type="date" id="dueDate" name="dueDate" value={invoiceData.dueDate} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            )}
+            
+            <div className={`${profileKey === 'custom' ? 'border-t border-slate-200 dark:border-slate-700 pt-6' : ''} space-y-4`}>
+              <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 flex items-center"><User size={20} className="mr-2"/> Client Details</h3>
+              <div>
+                <label htmlFor="clientName" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Name</label>
+                <input type="text" id="clientName" name="clientName" value={invoiceData.client.name} onChange={handleDataChange} placeholder="e.g., Acme Corporation" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+              </div>
+              <div>
+                <label htmlFor="clientAddress" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Address</label>
+                <textarea id="clientAddress" name="clientAddress" value={invoiceData.client.address} onChange={handleDataChange} placeholder="Client's full address" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
               </div>
             </div>
             
-            <div>
-              <label htmlFor="currency" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Currency</label>
-              {/* UPDATED: Wrapped select in a relative div and added a custom chevron icon for balanced padding */}
-              <div className="relative">
-                <select id="currency" name="currency" value={currency} onChange={handleCurrencyChange} className="w-full px-3 py-2 appearance-none bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                  <option value="PHP">PHP (₱)</option>
-                  <option value="USD">USD ($)</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="invoiceNumber" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Invoice #</label>
+                  <input type="text" id="invoiceNumber" name="invoiceNumber" value={invoiceData.invoiceNumber} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                </div>
+                <div>
+                  <label htmlFor="dueDate" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Due Date</label>
+                  <input type="date" id="dueDate" name="dueDate" value={invoiceData.dueDate} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="currency" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Currency</label>
+                <div className="relative">
+                  <select id="currency" name="currency" value={currency} onChange={handleCurrencyChange} className="w-full px-3 py-2 appearance-none bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <option value="PHP">PHP (₱)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                </div>
               </div>
             </div>
 
@@ -208,7 +317,7 @@ export default function InvoicePage() {
               </div>
               <div>
                 <label htmlFor="paymentDetails" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Payment Options</label>
-                <textarea id="paymentDetails" name="paymentDetails" value={invoiceData.paymentDetails} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={4}></textarea>
+                <textarea id="paymentDetails" name="paymentDetails" value={invoiceData.paymentDetails} onChange={handleCompanyDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={4}></textarea>
               </div>
             </div>
 
@@ -228,7 +337,6 @@ export default function InvoicePage() {
                         <InvoiceTemplate data={invoiceData} currency={currency} ref={invoiceRef} />
                     </div>
                 </div>
-                {/* MOVED the download button to the header */}
             </div>
           </div>
         </div>
