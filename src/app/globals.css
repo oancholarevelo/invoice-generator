@@ -19,3 +19,7 @@ body {
 .toggle-checkbox:checked + .toggle-label {
   background-color: #4f46e5; /* equivalent to bg-indigo-600 */
 }
+
+html {
+  scroll-behavior: smooth;
+}
