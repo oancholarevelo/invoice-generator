@@ -18,16 +18,16 @@ function SiteHeader() {
           Build That Thing
         </a>
         <nav className="hidden md:flex items-center gap-4 sm:gap-6 text-sm font-medium text-slate-600">
-          <a href="https://buildthatinvoice.vercel.app/" className="flex items-center gap-2 hover:text-indigo-600 transition-colors">
-            <span className="hidden sm:inline">Invocie Builder</span>
+          <a href="https://buildthatinvoice.vercel.app/" className="flex items-center gap-2 text-indigo-600 font-semibold">
+            <span className="hidden sm:inline">Invoice Builder</span>
           </a>
           <a href="https://buildthatresume.vercel.app/" className="flex items-center gap-2 hover:text-indigo-600 transition-colors">
             <span className="hidden sm:inline">Resume Builder</span>
           </a>
-          <a href="https://convertthatimage.vercel.app/" className="flex items-center gap-2 text-indigo-600 font-semibold">
+          <a href="https://convertthatimage.vercel.app/" className="flex items-center gap-2 hover:text-indigo-600 transition-colors">
             <span className="hidden sm:inline">Image Converter</span>
           </a>
-          <a href="https://launchthatlinkpage.vercel.app/" className="flex items-center gap-2 text-indigo-600 font-semibold">
+          <a href="https://launchthatlinkpage.vercel.app/" className="flex items-center gap-2 hover:text-indigo-600 transition-colors">
             <span className="hidden sm:inline">Linkpage Builder</span>
           </a>
         </nav>
