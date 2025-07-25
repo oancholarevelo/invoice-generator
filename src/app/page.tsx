@@ -5,7 +5,7 @@ import { ArrowRight, FileText } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-center p-8 bg-transparent">
+    <main className="flex flex-col items-center justify-center p-8 bg-transparent">
       <div className="text-center">
         <div className="flex justify-center mb-6">
           <div className="p-4 bg-indigo-100 dark:bg-indigo-900/50 rounded-full">
@@ -13,7 +13,7 @@ export default function HomePage() {
           </div>
         </div>
         <h1 className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-6xl">
-          Invoice Generator
+          Build That Invoice
         </h1>
         <p className="mt-6 text-xl text-slate-600 dark:text-slate-400">
           Who is creating this invoice?

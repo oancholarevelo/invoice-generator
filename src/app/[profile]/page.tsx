@@ -130,7 +130,7 @@ export default function InvoicePage() {
   };
 
   return (
-    <main className="p-4 sm:p-8 lg:p-12 bg-transparent min-h-screen">
+    <main className="p-4 sm:p-8 lg:p-12 bg-transparent">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl shadow-md backdrop-blur-lg p-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
