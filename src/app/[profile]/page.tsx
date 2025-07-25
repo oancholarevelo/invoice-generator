@@ -90,7 +90,6 @@ export default function InvoicePage() {
       setLogoFilename(file.name);
       setInvoiceData(prev => {
         if (!prev) return null;
-        // Revoke the old URL if it exists to avoid memory leaks
         if (prev.company.logoUrl && prev.company.logoUrl.startsWith('blob:')) {
           URL.revokeObjectURL(prev.company.logoUrl);
         }
@@ -189,16 +188,16 @@ export default function InvoicePage() {
   return (
     <main className="p-4 sm:p-8 lg:p-12 bg-transparent">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl shadow-md backdrop-blur-lg p-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-white/50 border border-slate-200/50 rounded-xl shadow-md backdrop-blur-lg p-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Create Invoice</h1>
-            <div className="flex items-center gap-2 mt-2 text-slate-500 dark:text-slate-400">
+            <h1 className="text-3xl font-bold text-slate-900">Create Invoice</h1>
+            <div className="flex items-center gap-2 mt-2 text-slate-500">
               <User size={16} />
               <span className="font-semibold">{profileKey === 'custom' ? (invoiceData.company.name || 'Custom User') : userProfile.name}</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors shadow-sm">
               <ChevronsLeft size={16} />
               Switch User
             </Link>
@@ -210,17 +209,17 @@ export default function InvoicePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-          <div className="lg:col-span-2 p-6 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl space-y-6 backdrop-blur-lg shadow-md">
+          <div className="lg:col-span-2 p-6 bg-white/50 border border-slate-200/50 rounded-xl space-y-6 backdrop-blur-lg shadow-md">
             
             {profileKey === 'custom' && (
               <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 flex items-center"><Building size={20} className="mr-2"/> Your Details</h3>
+                  <h3 className="text-xl font-semibold text-slate-800 flex items-center"><Building size={20} className="mr-2"/> Your Details</h3>
                   <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Your Name / Company</label>
-                      <input type="text" id="name" name="name" value={invoiceData.company.name} onChange={handleCompanyDataChange} placeholder="e.g., John Doe" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <label htmlFor="name" className="block text-sm font-medium text-slate-600 mb-2">Your Name / Company</label>
+                      <input type="text" id="name" name="name" value={invoiceData.company.name} onChange={handleCompanyDataChange} placeholder="e.g., John Doe" className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
                   </div>
                   <div>
-                      <label htmlFor="logoUrl" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Logo</label>
+                      <label htmlFor="logoUrl" className="block text-sm font-medium text-slate-600 mb-2">Logo</label>
                       <button onClick={() => logoInputRef.current?.click()} className="w-full border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50/80 transition-all duration-300 group flex items-center justify-center gap-2">
                           <UploadCloud className="text-slate-400 group-hover:text-indigo-600" size={20}/>
                           <span className="text-slate-600 font-semibold">{logoFilename ? 'Change Logo' : 'Upload Logo'}</span>
@@ -234,51 +233,51 @@ export default function InvoicePage() {
                       )}
                   </div>
                    <div>
-                      <label htmlFor="address" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Your Address</label>
-                      <textarea id="address" name="address" value={invoiceData.company.address} onChange={handleCompanyDataChange} placeholder="123 Example St..." className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={2}></textarea>
+                      <label htmlFor="address" className="block text-sm font-medium text-slate-600 mb-2">Your Address</label>
+                      <textarea id="address" name="address" value={invoiceData.company.address} onChange={handleCompanyDataChange} placeholder="123 Example St..." className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={2}></textarea>
                   </div>
                   <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Your Email</label>
-                      <input type="email" id="email" name="email" value={invoiceData.company.email} onChange={handleCompanyDataChange} placeholder="you@example.com" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <label htmlFor="email" className="block text-sm font-medium text-slate-600 mb-2">Your Email</label>
+                      <input type="email" id="email" name="email" value={invoiceData.company.email} onChange={handleCompanyDataChange} placeholder="you@example.com" className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
                   </div>
                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Your Phone</label>
-                      <input type="tel" id="phone" name="phone" value={invoiceData.company.phone} onChange={handleCompanyDataChange} placeholder="+1 (555) 123-4567" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <label htmlFor="phone" className="block text-sm font-medium text-slate-600 mb-2">Your Phone</label>
+                      <input type="tel" id="phone" name="phone" value={invoiceData.company.phone} onChange={handleCompanyDataChange} placeholder="+1 (555) 123-4567" className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
                   </div>
                    <div>
-                      <label htmlFor="portfolio" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Website / Portfolio</label>
-                      <input type="text" id="portfolio" name="portfolio" value={invoiceData.company.portfolio} onChange={handleCompanyDataChange} placeholder="yourwebsite.com" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <label htmlFor="portfolio" className="block text-sm font-medium text-slate-600 mb-2">Website / Portfolio</label>
+                      <input type="text" id="portfolio" name="portfolio" value={invoiceData.company.portfolio} onChange={handleCompanyDataChange} placeholder="yourwebsite.com" className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
                   </div>
               </div>
             )}
             
-            <div className={`${profileKey === 'custom' ? 'border-t border-slate-200 dark:border-slate-700 pt-6' : ''} space-y-4`}>
-              <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 flex items-center"><User size={20} className="mr-2"/> Client Details</h3>
+            <div className={`${profileKey === 'custom' ? 'border-t border-slate-200 pt-6' : ''} space-y-4`}>
+              <h3 className="text-xl font-semibold text-slate-800 flex items-center"><User size={20} className="mr-2"/> Client Details</h3>
               <div>
-                <label htmlFor="clientName" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Name</label>
-                <input type="text" id="clientName" name="clientName" value={invoiceData.client.name} onChange={handleDataChange} placeholder="e.g., Acme Corporation" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                <label htmlFor="clientName" className="block text-sm font-medium text-slate-600 mb-2">Client Name</label>
+                <input type="text" id="clientName" name="clientName" value={invoiceData.client.name} onChange={handleDataChange} placeholder="e.g., Acme Corporation" className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
               </div>
               <div>
-                <label htmlFor="clientAddress" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Client Address</label>
-                <textarea id="clientAddress" name="clientAddress" value={invoiceData.client.address} onChange={handleDataChange} placeholder="Client's full address" className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
+                <label htmlFor="clientAddress" className="block text-sm font-medium text-slate-600 mb-2">Client Address</label>
+                <textarea id="clientAddress" name="clientAddress" value={invoiceData.client.address} onChange={handleDataChange} placeholder="Client's full address" className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
               </div>
             </div>
             
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-6 space-y-4">
+            <div className="border-t border-slate-200 pt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="invoiceNumber" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Invoice #</label>
-                  <input type="text" id="invoiceNumber" name="invoiceNumber" value={invoiceData.invoiceNumber} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                  <label htmlFor="invoiceNumber" className="block text-sm font-medium text-slate-600 mb-2">Invoice #</label>
+                  <input type="text" id="invoiceNumber" name="invoiceNumber" value={invoiceData.invoiceNumber} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
                 </div>
                 <div>
-                  <label htmlFor="dueDate" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Due Date</label>
-                  <input type="date" id="dueDate" name="dueDate" value={invoiceData.dueDate} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                  <label htmlFor="dueDate" className="block text-sm font-medium text-slate-600 mb-2">Due Date</label>
+                  <input type="date" id="dueDate" name="dueDate" value={invoiceData.dueDate} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
                 </div>
               </div>
               <div>
-                <label htmlFor="currency" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Currency</label>
+                <label htmlFor="currency" className="block text-sm font-medium text-slate-600 mb-2">Currency</label>
                 <div className="relative">
-                  <select id="currency" name="currency" value={currency} onChange={handleCurrencyChange} className="w-full px-3 py-2 appearance-none bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                  <select id="currency" name="currency" value={currency} onChange={handleCurrencyChange} className="w-full px-3 py-2 appearance-none bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                     <option value="PHP">PHP (₱)</option>
                     <option value="USD">USD ($)</option>
                   </select>
@@ -287,37 +286,37 @@ export default function InvoicePage() {
               </div>
             </div>
 
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-               <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-4">Items</h3>
+            <div className="border-t border-slate-200 pt-6">
+               <h3 className="text-xl font-semibold text-slate-800 mb-4">Items</h3>
                <div className="space-y-4">
                   {invoiceData.items.map((item, index) => (
                     <div key={index} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
-                      <input type="text" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} placeholder="Description" className="sm:col-span-5 px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
-                      <input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} placeholder="Qty" className="sm:col-span-2 px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
-                      <input type="number" value={item.rate} onChange={(e) => handleItemChange(index, 'rate', e.target.value)} placeholder="Rate" className="sm:col-span-3 px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <input type="text" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} placeholder="Description" className="sm:col-span-5 px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', e.target.value)} placeholder="Qty" className="sm:col-span-2 px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
+                      <input type="number" value={item.rate} onChange={(e) => handleItemChange(index, 'rate', e.target.value)} placeholder="Rate" className="sm:col-span-3 px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/>
                       <button onClick={() => removeItem(index)} className="sm:col-span-2 text-red-500 hover:text-red-700 flex justify-center items-center h-full"><Trash2 size={18}/></button>
                     </div>
                   ))}
-                  <button onClick={addItem} className="w-full py-2 border-dashed border-2 border-slate-300 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 font-semibold flex items-center justify-center gap-2"><Plus size={16}/> Add Item</button>
+                  <button onClick={addItem} className="w-full py-2 border-dashed border-2 border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 font-semibold flex items-center justify-center gap-2"><Plus size={16}/> Add Item</button>
                </div>
             </div>
 
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-6 space-y-6">
+            <div className="border-t border-slate-200 pt-6 space-y-6">
               <div>
-                <label htmlFor="notes" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Notes</label>
-                <textarea id="notes" name="notes" value={invoiceData.notes} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
+                <label htmlFor="notes" className="block text-sm font-medium text-slate-600 mb-2">Notes</label>
+                <textarea id="notes" name="notes" value={invoiceData.notes} onChange={handleDataChange} className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={3}></textarea>
               </div>
               <div>
-                <label htmlFor="paymentDetails" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Payment Options</label>
-                <textarea id="paymentDetails" name="paymentDetails" value={invoiceData.paymentDetails} onChange={handleCompanyDataChange} className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={4}></textarea>
+                <label htmlFor="paymentDetails" className="block text-sm font-medium text-slate-600 mb-2">Payment Options</label>
+                <textarea id="paymentDetails" name="paymentDetails" value={invoiceData.paymentDetails} onChange={handleCompanyDataChange} className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" rows={4}></textarea>
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-6">
-              <label htmlFor="isPaid" className="text-sm font-medium text-slate-700 dark:text-slate-300">Mark as Paid</label>
+            <div className="flex items-center justify-between border-t border-slate-200 pt-6">
+              <label htmlFor="isPaid" className="text-sm font-medium text-slate-700">Mark as Paid</label>
               <div className="relative inline-block w-10 align-middle select-none">
-                  <input type="checkbox" name="isPaid" id="isPaid" checked={invoiceData.isPaid} onChange={handleDataChange} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white dark:bg-slate-900 border-4 border-slate-300 dark:border-slate-600 appearance-none cursor-pointer transition-all duration-200 ease-in-out"/>
-                  <label htmlFor="isPaid" className="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer"></label>
+                  <input type="checkbox" name="isPaid" id="isPaid" checked={invoiceData.isPaid} onChange={handleDataChange} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-slate-300 appearance-none cursor-pointer transition-all duration-200 ease-in-out"/>
+                  <label htmlFor="isPaid" className="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer"></label>
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-    darkMode: "class",
+    darkMode: false, // Disables dark mode
     content: [
         "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
         "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -39,7 +39,6 @@ const config: Config = {
                 '900': '#312e81',
                 '950': '#1e1b4b',
             },
-            // Add any other color palettes you need here
         },
         extend: {
             backgroundImage: {
